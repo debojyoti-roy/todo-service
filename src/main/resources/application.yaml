@@ -1,0 +1,60 @@
+info:
+  app:
+    name: todo-service
+    version: 1.0.0
+    description: API for manage to-do items with timestamps and 3 statuses
+
+server:
+  port: 8081
+  address: 0.0.0.0
+
+spring:
+  application:
+    name: todo-service
+  security:
+    user:
+      name: admin
+      password: admin
+  datasource:
+    # Connects to the H2 TCP Server expected to be running on port 9092
+    url: jdbc:h2:file:/data/todos;MODE=LEGACY;AUTO_RECONNECT=TRUE
+    driverClassName: org.h2.Driver
+    username: sa
+    password:
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      # NOTE: Configuration for 'web-allow-others' is now set via environment variables in docker-compose.yml
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+
+volumes:
+  - h2-data:/data
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      todoServiceCB:
+        slidingWindowSize: 20
+        minimumNumberOfCalls: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 5s
+        permittedNumberOfCallsInHalfOpenState: 5
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+
+ratelimiter:
+  instances:
+    todoRateLimiter:
+      limitForPeriod: 20        # Allow 20 calls...
+      limitRefreshPeriod: 1s    # ...per second
+      timeoutDuration: 0        # Do not wait if bucket empty

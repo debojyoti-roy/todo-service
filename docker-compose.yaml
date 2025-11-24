@@ -1,0 +1,23 @@
+services:
+  todo-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: todo-service
+    ports:
+      # Application Port: Exposes the Spring Boot application on host port 8081
+      - "8081:8081"
+      # H2 TCP Port: Exposes the H2 database server on host port 9092
+      - "9092:9092"
+    environment:
+      # CRITICAL: These environment variables override application defaults
+      # to ensure H2 allows remote connections from the host machine's browser console.
+      - SPRING_H2_CONSOLE_SETTINGS_WEB_ALLOW_OTHERS=true
+      - SPRING_H2_TCP_ALLOW_OTHERS=true
+    volumes:
+      # Maps the named volume 'h2-data' to the container's '/data' directory for persistence
+      - h2-data:/data
+
+volumes:
+  # Defines the named volume for H2 data persistence
+  h2-data:
